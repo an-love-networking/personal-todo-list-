@@ -10,5 +10,11 @@ This contains:
 - ripgrep
 - git
 - nvim 0.11+ i think ...
+- fd
 
-THAT's ALL lol
+## SHORTCUTS
+- Ctrl-s: open the tree
+- a, d, x, r: add, delete, cut, rename file in tree
+- Ctrl-e, Ctrl-q: forward, backward on suggestions list
+- Ctrl-space: accept suggestion
+

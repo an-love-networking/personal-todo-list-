@@ -20,8 +20,5 @@ vim.keymap.set("n", "<leader>Y", [["+Y]])
 -- select all
 vim.keymap.set('n', '<leader>sa', [[gg0vG$]])
 
--- display function signature
-vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, { desc = "Show Signature Help" })
-
 -- terminal mode to normal
-vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
+vim.keymap.set('t', '<leader><Esc>', '<C-\\><C-n>')
