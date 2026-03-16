@@ -11,16 +11,13 @@
 - steam and lutris (both is available on pacman)
 - fira nerd fonts: ttf-firacode-nerd
 - install *dwproton* on lutris
-- install a *manual* in arch (appearantly it does not come with *man*)
+- install *man* in arch (appearantly it does not come with *man*)
 
 4. Install Brave (obviously)
 5. Docukumenting
 - Everytime I install arch (again), i'll fetch this directory from github to my computer lol
 6. Realizing that I have to setup SSH to use github fetch (i don't like using HTTPS link)
 - the syntax is kinda easy to remember: ssh-keygen -t rsa -b 4096 -C [content here]
-
-7. TODO List here
-- 3Mar2026: Start learning Rust (est. 3 months) and Russian (est. 10 months).
 
 ## THINGS I NEED TO DO TO INSTALL ARCH **MANUALLY** for some reason
 1. Image booting
@@ -44,14 +41,18 @@
   - for who love the text-ish way of partitioning: **fdish -l** for listing disks
     - **fdisk [disk]** to partition [disk]
     - commands:
-      - d to delete
-      - n for create a new partition
-      - w to write
-      - p for printing all the partition in [disk]
+    ```bash
+      d to delete
+      n for create a new partition
+      w to write
+      p for printing all the partition in [disk]
+    ```
   - layout:
-    - efi: /: FAT32: 100M
-    - boot: /boot: EXT4: 512M
-    - lvm
+  ```bash
+    efi: /: FAT32: 100M
+    boot: /boot: EXT4: 512M
+    lvm
+  ```
 -----------------------------------------------------------------------
 - Partitioning LVM
 ```bash
@@ -184,9 +185,42 @@ nvim /etc/fstab
 ```
 -----------------------------------------------------------------------
 - Install a desktop env
+  - KDE Plasma
 ```bash
-pacman -S plasma-desktop sddm kate dolphin
+pacman -S plasma plasma-wayland-session
+pacman -S dolphin kate ark kcalc kdeconnect konsole \
+print-manager elisa dragon ffmpegthumbs gwenview  \
+skanlite spectacle okular packagekit-qt5 ksystemlog \
+partitionmanager kdialog
 systemctl enable sddm
+```
+  - Hyprland
+```bash
+sudo pacman -S hyprland
+```
+3. Post-installation
+- Audio
+```bash
+sudo pacman -S pipewire pipewire-audio pipewire-alsa pipewire-pulse
+```
+- Printer
+```bash
+sudo pacman -S cups
+sudo systemctl enable cups.service
+```
+- Steam
+```bash
+nvim /etc/pacman.conf
+# uncomment multilib
+```
+- Spellchecking
+```bash
+sudo pacman -S hunspell hunspell-en_us
+```
+- For developing
+```bash
+sudo pacman -S neovim clangd python git lazygit ripgrep \
+npm nodejs 
 ```
 - Exit
 ```bash
@@ -196,7 +230,6 @@ swapoff -a
 reboot
 ```
 
-3. Post-installation
 - install AUR (arch unified repo)
 ```bash
 pacman -S --needed git base-devel && git clone  https://aur.archlinux.org/yay.git \ 
