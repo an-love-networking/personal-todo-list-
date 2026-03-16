@@ -22,3 +22,19 @@ vim.keymap.set('n', '<leader>sa', [[gg0vG$]])
 
 -- terminal mode to normal
 vim.keymap.set('t', '<leader><Esc>', '<C-\\><C-n>')
+
+-- terminal mode
+terminal_id = nil
+vim.keymap.set('n', '<c-t>', function()
+  local active_buf_id = vim.api.nvim_get_current_buf()
+  if not terminal_id or not vim.api.nvim_buf_is_valid(terminal_id) then
+    vim.cmd('terminal')
+    terminal_id = vim.api.nvim_get_current_buf()
+  else 
+    if active_buf_id ~= terminal_id then
+      vim.cmd('buffer ' .. terminal_id)
+    else
+      vim.cmd('b#')
+    end
+  end
+end, { desc = "Toggle Terminal" })
