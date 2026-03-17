@@ -1,24 +1,4 @@
 # Linux learning curve (atleast for me)
-## THIS IS WHAT *I* SHOULD DO WHEN DONE INSTALLING ARCH
-
-1. Install Git, Nodejs, npm, clangd, python
-2. Install neovim and use AstroVim distro (really this is a good distro)
-*The personal folder is just a self-made distro i'm experimenting*
-3. Install packages
-- vulkantools
-- nvidia-utils, lib32-nvidia-utils, glibc
-- ripgrep and other AstroVim's dependencies
-- steam and lutris (both is available on pacman)
-- fira nerd fonts: ttf-firacode-nerd
-- install *dwproton* on lutris
-- install *man* in arch (appearantly it does not come with *man*)
-
-4. Install Brave (obviously)
-5. Docukumenting
-- Everytime I install arch (again), i'll fetch this directory from github to my computer lol
-6. Realizing that I have to setup SSH to use github fetch (i don't like using HTTPS link)
-- the syntax is kinda easy to remember: ssh-keygen -t rsa -b 4096 -C [content here]
-
 ## THINGS I NEED TO DO TO INSTALL ARCH **MANUALLY** for some reason
 1. Image booting
 - Download .iso image
@@ -198,7 +178,7 @@ systemctl enable sddm
 ```bash
 sudo pacman -S hyprland
 ```
-3. Post-installation
+## POST INSTALLATION
 - Audio
 ```bash
 sudo pacman -S pipewire pipewire-audio pipewire-alsa pipewire-pulse
@@ -247,4 +227,8 @@ sudo pacman -S fcitx5 fcitx5-gtk fcitx5-qt fcitx5-configtool fcitx5-unikey
 echo export XMODIFIERS=@im=fcitx >> ~/.bash_profile
 echo export GTK_IM_MODULE=fcitx >> ~/.bash_profile
 echo export QT_IM_MODULE=fcitx >> ~/.bash_profile
+```
+- Install Fira Code Nerd font
+```bash
+yay -S nerd-fonts-fira-code
 ```
