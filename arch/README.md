@@ -19,30 +19,34 @@
 - partitioning:
   - modern: **cfdisk**
   - for who love the text-ish way of partitioning: **fdish -l** for listing disks
-    - **fdisk [disk]** to partition [disk]
+    - **gdisk [disk]** to partition [disk]
     - commands:
     ```bash
       d to delete
       n for create a new partition
       w to write
       p for printing all the partition in [disk]
+      t for changing partition type
     ```
   - layout:
   ```bash
-    efi: /: FAT32: 100M
-    boot: /boot: EXT4: 512M
-    lvm
+    efi: /efi: FAT32: 100M
+    lvm:
+      root: /mnt
+      home: /mnt/home
+      swap
+      [snapshot]
   ```
 -----------------------------------------------------------------------
 - Partitioning LVM
 ```bash
-cryptsetup luksFormat [lvm]
-cryptsetup open --type luks [encrypted] cryptlvm_0
+cryptsetup luksFormat /dev/[disk]
+cryptsetup open --type luks /dev/[disk] cryptlvm_i
 # can repeate for as many partitions and use for the lvm
 
 # configuring lvm
-pvcreate /dev/mapper/cryptlvm_0 ...
-vgcreate volgroup0 dev/mapper/cryptlvm_0 ...
+pvcreate /dev/mapper/cryptlvm_i ...
+vgcreate volgroup0 dev/mapper/cryptlvm_i ...
 # vgextend to add partition to a volgroup
 # see the volume group via vgdisplay or vgscan
 
@@ -53,16 +57,15 @@ lvcreate -l 100%FREE volgroup0 -n lv_home
 lvreduce --size -256M volgroup0/lv_home
 # check via lvdisplay or lvscan
 
-modprobe md_mod # can omit
+# modprobe md_mod 
 
-vgscan
-vgactivate -ay
+# vgscan
+# vgactivate -ay
 ```
 -----------------------------------------------------------------------
 - Format:
 ```bash
 mkfs.fat -F32 [efi]
-mkfs.ext4 [boot]
 mkfs.ext4 /dev/volgroup0/lv_root
 mkfs.ext4 /dev/volgroup0/lv_home
 mkswap /dev/volgroup0/lv_swap
@@ -72,7 +75,6 @@ mkswap /dev/volgroup0/lv_swap
 ```bash
 mount /dev/volgroup0/lv_root /mnt
 mount --mkdir [efi] /mnt/efi
-mount --mkdir [boot] /mnt/boot
 mount --mkdir /dev/volgroup0/lv_home /mnt/home
 swapon /dev/volgroup0/lv_swap
 ```
@@ -80,51 +82,68 @@ swapon /dev/volgroup0/lv_swap
 - Installing arch
 ```bash
 pacstrap -K /mnt base linux linux-firmware \
-base-devel nano vim neovim sudo intel-ucode lvm2
+base-devel neovim git intel-ucode
 genfstab -U /mnt >> /mnt/etc/fstab 
 # verify
 cat /mnt/etc/fstab
-
+```
+-----------------------------------------------------------------------
+- Change into root and configure
+```bash
 # change into the root user
 arch-chroot /mnt /bin/bash
+```
+- Synchronize clock and setup locale
+```bash
 ln -sf /usr/share/zoneinfo/Asia/Saigon /etc/localtime
 hwclock --systohc 
 
-nvim /etc/locale.gen
-# uncomment the desired locale
+nvim /etc/locale.gen # uncomment the desired locale
 locale-gen
-echo LANG=en_us.UTF-8 > /etc/locale.conf
+nvim /etc/locale.conf # LANG=en_US.UTF-8
 
-# change the host name
-echo archlinux >> /etc/hostname
+nvim /etc/vconsole.conf # KEYMAP=us
+```
+- Setup hostname
+```bash
+nvim /etc/hostname
+# archlinux
 
-# set root password
+nvim /etc/hosts
+# 127.0.0.1 localhost
+# ::1 localhost
+# 127.0.1.1 archlinux
+```
+- Change the root password
+```bash
 passwd
-
-# add user
-useradd -g [prim_gr] -G wheel --shell [username]
+```
+- Add user and change password
+```bash
+useradd -g [prim_gr] -mG wheel [username]
 # other supplementary group
 # wheel for sudo privileges
 # video for capturing video
 # audio for capturing audio
 # lp for printing task
 # cdrom for mounting access
-# d8alout for porting
+# dialout for porting
 # docker for manage Docker containers without sudo
 # wireshark for capturing network packets
 # systemd-journal for easy system logs reading
 
-# setup user's password
 passwd [username]
-
-# give wheel group's users sudo privileges
+```
+- Enable sudo for all wheel users
+```bash
 EDITOR=nvim visudo
-# and uncomment %wheel ALL=(ALL:ALL) ALL
-
+# uncomment %wheel ALL=(ALL:ALL) ALL
+```
+- Add hooks
+```bash
 nvim /etc/mkinitcpio.conf
-#HOOKS=(base udev autodetect modconf block encrypt lvm2 filesystems keyboard fsck )
-# for multi-encrypted partitions:
-# udev -> systemd, encrypt -> sd-encrypt
+# HOOKS=(base udev autodetect modconf block encrypt lvm2 filesystems keyboard fsck )
+# or    (systemd   autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 resume filesystems fsck)
 mkinitcpio -P
 # enable network manager
 pacman -S networkmanager
@@ -139,8 +158,8 @@ grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB
 
 nvim /etc/default/grub
 # uncomment GRUB_DISABLE_OS_PROBER=false
-# GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 cryptdevice=UUID=[UUID]:cryptlvm root=/dev/volgroup0/lv_root quiet"
-# udev, encrypt -> systemd, sd-encrypt is more complex
+# GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 cryptdevice=UUID=[UUID]:cryptlvm root=/dev/mapper/vg0-lv_root resume=/dev/mapper/vg0-lv_swap quiet"
+# or cryptdevice -> rd.luks.name=[uuid]=lvm
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 -----------------------------------------------------------------------
@@ -167,14 +186,12 @@ nvim /etc/fstab
 - Install a desktop env
   - KDE Plasma
 ```bash
-pacman -S plasma plasma-wayland-session
-pacman -S dolphin kate ark kcalc kdeconnect konsole \
-print-manager elisa dragon ffmpegthumbs gwenview  \
-skanlite spectacle okular packagekit-qt5 ksystemlog \
-partitionmanager kdialog
+pacman -S plasma-desktop sddm konsole dolphin \
+plasma-nm sscreenlocker plasma-pa systemsettings kde-gtk-config \
+powerdevil qt6-wayland
 systemctl enable sddm
 ```
-  - Hyprland
+  - Hyprland ( will figure out later )
 ```bash
 sudo pacman -S hyprland
 ```
